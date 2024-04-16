@@ -30,7 +30,9 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -44,14 +46,14 @@ import java.util.function.Consumer;
  */
 public class ExpiringLimitedCache<K, V>
 {
+	private static final Logger LOG = LoggerFactory.getLogger(ExpiringLimitedCache.class);
+	
 	protected final Duration expirationTime;
 	
 	protected final AtomicInteger cleanUpExecutorCounter = new AtomicInteger(1);
 	protected final ThreadFactory cleanUpExecutorThreadFactory;
 	protected ScheduledExecutorService cleanUpExecutor;
 	protected final Object cleanUpExecutorLock = new Object();
-	
-	protected Consumer<String> logConsumer;
 	
 	protected final Map<K, SoftReference<CacheValue<V>>> cache;
 	
@@ -76,22 +78,12 @@ public class ExpiringLimitedCache<K, V>
 		};
 	}
 	
-	public void setLogConsumer(final Consumer<String> logConsumer)
-	{
-		this.logConsumer = logConsumer;
-	}
-	
-	protected void log(final String s)
-	{
-		if(this.logConsumer != null)
-		{
-			this.logConsumer.accept(s);
-		}
-	}
-	
 	public void put(final K key, final V value)
 	{
-		this.log("put called for key[hashcode=" + key.hashCode() + "]: " + key);
+		if(LOG.isTraceEnabled())
+		{
+			LOG.trace("put called for key[hashcode={}]: {}", key.hashCode(), key);
+		}
 		
 		this.cache.put(key, new SoftReference<>(new CacheValue<>(value, currentUtcTime().plus(this.expirationTime))));
 		this.startCleanupExecutorIfRequired();
@@ -99,32 +91,32 @@ public class ExpiringLimitedCache<K, V>
 	
 	public V get(final K key)
 	{
-		final String keyLogStr = "key[hashcode=" + key.hashCode() + "]";
-		this.log("get called for " + keyLogStr + ": " + key);
+		final String keyLogData = LOG.isTraceEnabled() ? "key[hashcode=" + key.hashCode() + "]" : null;
+		LOG.trace("get called for {} : {}", keyLogData, key);
 		
 		final SoftReference<CacheValue<V>> ref = this.cache.get(key);
 		if(ref == null)
 		{
-			this.log(keyLogStr + " not in cache");
+			LOG.trace("{} not in cache", keyLogData);
 			return null;
 		}
 		final CacheValue<V> value = ref.get();
 		if(value == null)
 		{
-			this.log("Value for " + keyLogStr + " was disposed by GC");
+			LOG.trace("Value for {} was disposed by GC", keyLogData);
 			return null;
 		}
 		// Check if expired and remove
 		if(value.isExpired())
 		{
-			this.log(keyLogStr + " is expired");
+			LOG.trace("{} is expired", keyLogData);
 			
 			this.cache.remove(key);
 			this.shutdownCleanupExecutorIfRequired();
 			return null;
 		}
 		
-		this.log(keyLogStr + " is present");
+		LOG.trace("{} is present", keyLogData);
 		return value.value();
 	}
 	
@@ -141,7 +133,7 @@ public class ExpiringLimitedCache<K, V>
 				return;
 			}
 			
-			this.log("Starting cleanupExecutor");
+			LOG.trace("Starting cleanupExecutor");
 			this.cleanUpExecutor = Executors.newScheduledThreadPool(1, this.cleanUpExecutorThreadFactory);
 			this.cleanUpExecutor.scheduleAtFixedRate(
 				this::runCleanup,
@@ -166,8 +158,13 @@ public class ExpiringLimitedCache<K, V>
 		
 		toClear.forEach(this.cache::remove);
 		
-		this.log("Cleared " + toClear.size() + "x cached entries, took "
-			+ (System.currentTimeMillis() - startTime) + "ms");
+		if(LOG.isTraceEnabled())
+		{
+			LOG.trace(
+				"Cleared {}x cached entries, took {}ms",
+				toClear.size(),
+				(System.currentTimeMillis() - startTime));
+		}
 		
 		this.shutdownCleanupExecutorIfRequired();
 	}
@@ -178,7 +175,7 @@ public class ExpiringLimitedCache<K, V>
 		{
 			synchronized(this.cleanUpExecutorLock)
 			{
-				this.log("Shutting down cleanupExecutor");
+				LOG.trace("Shutting down cleanupExecutor");
 				this.cleanUpExecutor.shutdownNow();
 				this.cleanUpExecutor = null;
 			}
