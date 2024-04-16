@@ -5,20 +5,20 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>software.xdev</groupId>
-	<artifactId>standard-maven-template</artifactId>
+	<artifactId>expiring-limited-cache</artifactId>
 	<version>1.0.0-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
-	<name>standard-maven-template</name>
-	<description>standard-maven-template</description>
-	<url>https://github.com/xdev-software/standard-maven-template</url>
+	<name>expiring-limited-cache</name>
+	<description>expiring-limited-cache</description>
+	<url>https://github.com/xdev-software/expiring-limited-cache</url>
 
 	<scm>
-		<url>https://github.com/xdev-software/standard-maven-template</url>
-		<connection>scm:git:https://github.com/xdev-software/standard-maven-template.git</connection>
+		<url>https://github.com/xdev-software/expiring-limited-cache</url>
+		<connection>scm:git:https://github.com/xdev-software/expiring-limited-cache.git</connection>
 	</scm>
 
-	<inceptionYear>2023</inceptionYear>
+	<inceptionYear>2024</inceptionYear>
 
 	<organization>
 		<name>XDEV Software</name>
@@ -83,6 +83,15 @@
 			<url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
 		</repository>
 	</distributionManagement>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-api</artifactId>
+			<version>5.10.2</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
 
 	<build>
 		<pluginManagement>
@@ -171,6 +180,12 @@
 						</goals>
 					</execution>
 				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>3.2.5</version>
 			</plugin>
 		</plugins>
 	</build>
