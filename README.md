@@ -8,7 +8,7 @@ A [expiring and limited java cache](./expiring-limited-cache/src/main/java/softw
 
 Provides a ``Map`` that clears entries after a specific time, when a specific size is reached or when the JVM needs memory.
 
-Usage examples:
+Usecase examples:
 * Caching all objects in an S3 Bucket
 * Caching API responses
 
