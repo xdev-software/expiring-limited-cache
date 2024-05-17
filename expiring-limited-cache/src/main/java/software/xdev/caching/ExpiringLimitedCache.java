@@ -173,11 +173,18 @@ public class ExpiringLimitedCache<K, V>
 	{
 		if(this.cache.isEmpty())
 		{
+			if(this.cleanUpExecutor == null)
+			{
+				return;
+			}
 			synchronized(this.cleanUpExecutorLock)
 			{
 				LOG.trace("Shutting down cleanupExecutor");
-				this.cleanUpExecutor.shutdownNow();
-				this.cleanUpExecutor = null;
+				if(this.cleanUpExecutor != null)
+				{
+					this.cleanUpExecutor.shutdownNow();
+					this.cleanUpExecutor = null;
+				}
 			}
 		}
 	}
