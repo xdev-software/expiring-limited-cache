@@ -30,6 +30,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,7 +54,7 @@ public class ExpiringLimitedCache<K, V>
 	protected final AtomicInteger cleanUpExecutorCounter = new AtomicInteger(1);
 	protected final ThreadFactory cleanUpExecutorThreadFactory;
 	protected ScheduledExecutorService cleanUpExecutor;
-	protected final Object cleanUpExecutorLock = new Object();
+	protected final ReentrantLock cleanUpExecutorLock = new ReentrantLock();
 	
 	protected final Map<K, SoftReference<CacheValue<V>>> cache;
 	
@@ -120,14 +121,18 @@ public class ExpiringLimitedCache<K, V>
 		return value.value();
 	}
 	
-	private synchronized void startCleanupExecutorIfRequired()
+	@SuppressWarnings("java:S2583") // Lock acquisition may take time
+	private void startCleanupExecutorIfRequired()
 	{
 		if(this.cleanUpExecutor != null)
 		{
 			return;
 		}
-		synchronized(this.cleanUpExecutorLock)
+		
+		this.cleanUpExecutorLock.lock();
+		try
 		{
+			// Recheck again
 			if(this.cleanUpExecutor != null)
 			{
 				return;
@@ -140,6 +145,10 @@ public class ExpiringLimitedCache<K, V>
 				this.expirationTime.toMillis(),
 				this.expirationTime.toMillis() / 2,
 				TimeUnit.MILLISECONDS);
+		}
+		finally
+		{
+			this.cleanUpExecutorLock.unlock();
 		}
 	}
 	
@@ -169,23 +178,33 @@ public class ExpiringLimitedCache<K, V>
 		this.shutdownCleanupExecutorIfRequired();
 	}
 	
+	@SuppressWarnings("java:S2583") // Lock acquisition may take time
 	protected void shutdownCleanupExecutorIfRequired()
 	{
-		if(this.cache.isEmpty())
+		if(!this.cache.isEmpty())
+		{
+			return;
+		}
+		
+		if(this.cleanUpExecutor == null)
+		{
+			return;
+		}
+		
+		this.cleanUpExecutorLock.lock();
+		try
 		{
 			if(this.cleanUpExecutor == null)
 			{
 				return;
 			}
-			synchronized(this.cleanUpExecutorLock)
-			{
-				LOG.trace("Shutting down cleanupExecutor");
-				if(this.cleanUpExecutor != null)
-				{
-					this.cleanUpExecutor.shutdownNow();
-					this.cleanUpExecutor = null;
-				}
-			}
+			LOG.trace("Shutting down cleanupExecutor");
+			this.cleanUpExecutor.shutdownNow();
+			this.cleanUpExecutor = null;
+		}
+		finally
+		{
+			this.cleanUpExecutorLock.unlock();
 		}
 	}
 	
