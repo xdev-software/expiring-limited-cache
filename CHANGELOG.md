@@ -1,3 +1,6 @@
+# 1.0.3
+* Improve performance when using virtual threads #49
+
 # 1.0.2
 * Fixed possible NPE when shutting down
 
