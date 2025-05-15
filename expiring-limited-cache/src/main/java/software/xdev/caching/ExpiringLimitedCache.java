@@ -172,7 +172,7 @@ public class ExpiringLimitedCache<K, V>
 			LOG.trace(
 				"Cleared {}x cached entries, took {}ms",
 				toClear.size(),
-				(System.currentTimeMillis() - startTime));
+				System.currentTimeMillis() - startTime);
 		}
 		
 		this.shutdownCleanupExecutorIfRequired();
