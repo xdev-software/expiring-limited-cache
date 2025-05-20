@@ -42,7 +42,7 @@ import org.slf4j.LoggerFactory;
  *     <li>a specific time (>=1s) elapses (is cleared in batches by a timer so it may stick around a bit longer)
  *     - {@link #expirationTime}</li>
  *     <li>a maximum number (>=1) of items is reached - {@link LimitedLinkedHashMap}</li>
- *     <li>the JVM needs memory - {@link SoftReference})</li>
+ *     <li>the JVM needs memory - {@link SoftReference}</li>
  * </ul>
  */
 public class ExpiringLimitedCache<K, V>
@@ -172,7 +172,7 @@ public class ExpiringLimitedCache<K, V>
 			LOG.trace(
 				"Cleared {}x cached entries, took {}ms",
 				toClear.size(),
-				(System.currentTimeMillis() - startTime));
+				System.currentTimeMillis() - startTime);
 		}
 		
 		this.shutdownCleanupExecutorIfRequired();
