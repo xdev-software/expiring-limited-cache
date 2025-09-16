@@ -1,3 +1,11 @@
+# 2.0.0
+* Redesign Scheduling: Use one central `ScheduledThreadPoolExecutor` per JVM #146
+  * This should lower the overall amount of Threads and therefore improve performance
+* Removed `name` parameter as it's no longer required
+* Implement `AutoCloseable`
+  * Calling this is optional
+* Use `Instant` instead of `LocalDateTime`
+
 # 1.0.4
 * Migrated deployment to _Sonatype Maven Central Portal_ [#155](https://github.com/xdev-software/standard-maven-template/issues/155)
 * Updated dependencies

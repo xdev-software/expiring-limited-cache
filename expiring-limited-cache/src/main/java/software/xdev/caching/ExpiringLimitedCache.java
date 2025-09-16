@@ -16,24 +16,23 @@
 package software.xdev.caching;
 
 import java.lang.ref.SoftReference;
-import java.time.Clock;
 import java.time.Duration;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import software.xdev.caching.scheduledexecutorservice.DefaultHolder;
 
 
 /**
@@ -45,23 +44,29 @@ import org.slf4j.LoggerFactory;
  *     <li>the JVM needs memory - {@link SoftReference}</li>
  * </ul>
  */
-public class ExpiringLimitedCache<K, V>
+public class ExpiringLimitedCache<K, V> implements AutoCloseable
 {
 	private static final Logger LOG = LoggerFactory.getLogger(ExpiringLimitedCache.class);
 	
 	protected final Duration expirationTime;
+	protected final ScheduledExecutorService cleanUpExecutorService;
 	
-	protected final AtomicInteger cleanUpExecutorCounter = new AtomicInteger(1);
-	protected final ThreadFactory cleanUpExecutorThreadFactory;
-	protected ScheduledExecutorService cleanUpExecutor;
-	protected final ReentrantLock cleanUpExecutorLock = new ReentrantLock();
+	protected ScheduledFuture<?> scheduledCleanUpFuture;
+	protected final ReentrantLock cleanUpLock = new ReentrantLock();
 	
 	protected final Map<K, SoftReference<CacheValue<V>>> cache;
 	
 	public ExpiringLimitedCache(
-		final String cacheName,
 		final Duration expirationTime,
 		final int maxSize)
+	{
+		this(expirationTime, maxSize, DefaultHolder.instance());
+	}
+	
+	public ExpiringLimitedCache(
+		final Duration expirationTime,
+		final int maxSize,
+		final ScheduledExecutorService cleanUpExecutorService)
 	{
 		this.expirationTime = Objects.requireNonNull(expirationTime);
 		if(expirationTime.toSeconds() < 1)
@@ -69,14 +74,8 @@ public class ExpiringLimitedCache<K, V>
 			throw new IllegalStateException();
 		}
 		
+		this.cleanUpExecutorService = cleanUpExecutorService;
 		this.cache = Collections.synchronizedMap(new LimitedLinkedHashMap<>(maxSize));
-		
-		this.cleanUpExecutorThreadFactory = r -> {
-			final Thread thread = new Thread(r);
-			thread.setName(cacheName + "-Cache-Cleanup-Executor-" + this.cleanUpExecutorCounter.getAndIncrement());
-			thread.setDaemon(true);
-			return thread;
-		};
 	}
 	
 	public void put(final K key, final V value)
@@ -124,23 +123,22 @@ public class ExpiringLimitedCache<K, V>
 	@SuppressWarnings("java:S2583") // Lock acquisition may take time
 	private void startCleanupExecutorIfRequired()
 	{
-		if(this.cleanUpExecutor != null)
+		if(this.scheduledCleanUpFuture != null)
 		{
 			return;
 		}
 		
-		this.cleanUpExecutorLock.lock();
+		this.cleanUpLock.lock();
 		try
 		{
 			// Recheck again
-			if(this.cleanUpExecutor != null)
+			if(this.scheduledCleanUpFuture != null)
 			{
 				return;
 			}
 			
-			LOG.trace("Starting cleanupExecutor");
-			this.cleanUpExecutor = Executors.newScheduledThreadPool(1, this.cleanUpExecutorThreadFactory);
-			this.cleanUpExecutor.scheduleAtFixedRate(
+			LOG.trace("Scheduling cleanup task");
+			this.scheduledCleanUpFuture = this.cleanUpExecutorService.scheduleWithFixedDelay(
 				this::runCleanup,
 				this.expirationTime.toMillis(),
 				this.expirationTime.toMillis() / 2,
@@ -148,11 +146,11 @@ public class ExpiringLimitedCache<K, V>
 		}
 		finally
 		{
-			this.cleanUpExecutorLock.unlock();
+			this.cleanUpLock.unlock();
 		}
 	}
 	
-	private void runCleanup()
+	protected void runCleanup()
 	{
 		final long startTime = System.currentTimeMillis();
 		
@@ -178,7 +176,6 @@ public class ExpiringLimitedCache<K, V>
 		this.shutdownCleanupExecutorIfRequired();
 	}
 	
-	@SuppressWarnings("java:S2583") // Lock acquisition may take time
 	protected void shutdownCleanupExecutorIfRequired()
 	{
 		if(!this.cache.isEmpty())
@@ -186,25 +183,32 @@ public class ExpiringLimitedCache<K, V>
 			return;
 		}
 		
-		if(this.cleanUpExecutor == null)
+		this.shutdownCleanupExecutor();
+	}
+	
+	@SuppressWarnings("java:S2583") // Lock acquisition may take a moment
+	protected void shutdownCleanupExecutor()
+	{
+		if(this.scheduledCleanUpFuture == null)
 		{
 			return;
 		}
 		
-		this.cleanUpExecutorLock.lock();
+		this.cleanUpLock.lock();
 		try
 		{
-			if(this.cleanUpExecutor == null)
+			// Recheck if this was changed in the meantime
+			if(this.scheduledCleanUpFuture == null)
 			{
 				return;
 			}
-			LOG.trace("Shutting down cleanupExecutor");
-			this.cleanUpExecutor.shutdownNow();
-			this.cleanUpExecutor = null;
+			LOG.trace("Stopping cleanup");
+			this.scheduledCleanUpFuture.cancel(false);
+			this.scheduledCleanUpFuture = null;
 		}
 		finally
 		{
-			this.cleanUpExecutorLock.unlock();
+			this.cleanUpLock.unlock();
 		}
 	}
 	
@@ -213,14 +217,21 @@ public class ExpiringLimitedCache<K, V>
 		return this.cache.size();
 	}
 	
-	protected static LocalDateTime currentUtcTime()
+	protected static Instant currentUtcTime()
 	{
-		return LocalDateTime.now(Clock.systemUTC());
+		return Instant.now();
+	}
+	
+	@Override
+	public void close()
+	{
+		this.cache.clear();
+		this.shutdownCleanupExecutor();
 	}
 	
 	public record CacheValue<V>(
 		V value,
-		LocalDateTime utcCacheExpirationTime)
+		Instant utcCacheExpirationTime)
 	{
 		public CacheValue
 		{
