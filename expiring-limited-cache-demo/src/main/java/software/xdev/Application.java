@@ -13,7 +13,6 @@ public final class Application
 	private static final Logger LOG = LoggerFactory.getLogger(Application.class);
 	
 	private static final ExpiringLimitedCache<Integer, String> CACHE = new ExpiringLimitedCache<>(
-		"demo",
 		Duration.ofSeconds(2),
 		1
 	);
