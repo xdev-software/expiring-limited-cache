@@ -28,7 +28,7 @@ public final class DefaultCreator
 		return Executors.newScheduledThreadPool(
 			1, r -> {
 				final Thread thread = new Thread(r);
-				thread.setName("Cache-Cleanup-Executor-" + counter.getAndIncrement());
+				thread.setName("ELC-Cleanup-" + counter.getAndIncrement());
 				thread.setDaemon(true);
 				return thread;
 			});
