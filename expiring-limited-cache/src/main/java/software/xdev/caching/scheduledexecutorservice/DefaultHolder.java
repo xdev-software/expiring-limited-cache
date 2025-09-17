@@ -40,6 +40,12 @@ public final class DefaultHolder
 		instance = DefaultCreator.create();
 	}
 	
+	// For manual overriding
+	public static void setInstance(final ScheduledExecutorService instance)
+	{
+		DefaultHolder.instance = instance;
+	}
+	
 	private DefaultHolder()
 	{
 	}
