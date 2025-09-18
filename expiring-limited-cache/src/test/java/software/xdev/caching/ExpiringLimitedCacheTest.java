@@ -17,9 +17,12 @@ package software.xdev.caching;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Duration;
+import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
@@ -41,6 +44,28 @@ class ExpiringLimitedCacheTest
 			cache.put(2, value2);
 			assertNull(cache.get(1));
 			assertEquals(value2, cache.get(2));
+		}
+	}
+	
+	@Test
+	void checkComputeIfAbsent()
+	{
+		try(final ExpiringLimitedCache<Integer, String> cache =
+			new ExpiringLimitedCache<>(Duration.ofMinutes(1), 5))
+		{
+			assertEquals("1", cache.computeIfAbsent(1, String::valueOf));
+			
+			assertEquals("1", cache.computeIfAbsent(1, i -> Assertions.fail("Value was computed again")));
+			
+			final AtomicBoolean wasComputeCalled = new AtomicBoolean(false);
+			assertEquals(
+				"2",
+				cache.computeIfAbsent(
+					2, i -> {
+						wasComputeCalled.set(true);
+						return String.valueOf(i);
+					}));
+			assertTrue(wasComputeCalled.get());
 		}
 	}
 	
