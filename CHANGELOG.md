@@ -1,3 +1,6 @@
+# 2.2.2
+* Re-Release due to Sonatype/Maven Central incorrectly claiming that the previous release is incorrectly signed #153
+
 # 2.2.1
 * Re-Release due to Sonatype/Maven Central incorrectly claiming that the previous release is incorrectly signed #153
 
