@@ -1,3 +1,8 @@
+# 2.2.0
+* Added `computeIfAbsent`
+* Improved logging performance
+* Scheduler: Try to remove tasks immediately when cancelled to prevent unbound retention of cancelled tasks
+
 # 2.1.0
 * Java21+: Use Virtual Thread(s) for scheduling #146
 * Make it possible to manually set the `ScheduledExecutorService` in `DefaultHolder`

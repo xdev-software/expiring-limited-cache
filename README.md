@@ -3,7 +3,7 @@
 
 # Expiring limited cache
 
-A [expiring and limited java cache](./expiring-limited-cache/src/main/java/software/xdev/caching/ExpiringLimitedCache.java) <sup>[JD](https://javadoc.io/doc/software.xdev/expiring-limited-cache/latest/software/xdev/caching/ExpiringLimitedCache.html)</sup>
+A [expiring and limited java cache](./expiring-limited-cache/src/main/java/software/xdev/caching/ExpiringLimitedCache.java) <sup>[JD](https://javadoc.io/doc/software.xdev/expiring-limited-cache/latest/software/xdev/caching/ExpiringLimitedCache.html)</sup> and simple, lightweight alternative to other libraries like [`caffeine`](https://github.com/ben-manes/caffeine).
 
 Provides a ``Map`` that clears entries after a specific time, when a specific size is reached or when the JVM needs memory.
 
