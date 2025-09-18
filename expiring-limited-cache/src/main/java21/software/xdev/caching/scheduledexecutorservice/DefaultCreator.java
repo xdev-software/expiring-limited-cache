@@ -17,16 +17,23 @@ package software.xdev.caching.scheduledexecutorservice;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 
 public final class DefaultCreator
 {
 	public static ScheduledExecutorService create()
 	{
-		return Executors.newScheduledThreadPool(
-			1, Thread.ofVirtual()
+		final ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(
+			1,
+			Thread.ofVirtual()
 				.name("ELC-Cleanup-", 0)
 				.factory());
+		if(scheduledExecutorService instanceof final ScheduledThreadPoolExecutor scheduledThreadPoolExecutor)
+		{
+			scheduledThreadPoolExecutor.setRemoveOnCancelPolicy(true);
+		}
+		return scheduledExecutorService;
 	}
 	
 	private DefaultCreator()
