@@ -28,6 +28,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Function;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,6 +48,16 @@ import software.xdev.caching.scheduledexecutorservice.DefaultHolder;
 public class ExpiringLimitedCache<K, V> implements AutoCloseable
 {
 	private static final Logger LOG = LoggerFactory.getLogger(ExpiringLimitedCache.class);
+	protected static Boolean traceEnabled;
+	
+	protected static boolean isTraceEnabled()
+	{
+		if(traceEnabled == null)
+		{
+			traceEnabled = LOG.isTraceEnabled();
+		}
+		return traceEnabled;
+	}
 	
 	protected final Duration expirationTime;
 	protected final ScheduledExecutorService cleanUpExecutorService;
@@ -80,7 +91,7 @@ public class ExpiringLimitedCache<K, V> implements AutoCloseable
 	
 	public void put(final K key, final V value)
 	{
-		if(LOG.isTraceEnabled())
+		if(isTraceEnabled())
 		{
 			LOG.trace("put called for key[hashcode={}]: {}", key.hashCode(), key);
 		}
@@ -89,10 +100,10 @@ public class ExpiringLimitedCache<K, V> implements AutoCloseable
 		this.startCleanupExecutorIfRequired();
 	}
 	
-	public V get(final K key)
+	protected CacheValue<V> getCachedValue(final K key)
 	{
-		final String keyLogData = LOG.isTraceEnabled() ? "key[hashcode=" + key.hashCode() + "]" : null;
-		LOG.trace("get called for {} : {}", keyLogData, key);
+		final String keyLogData = isTraceEnabled() ? "key[hashcode=" + key.hashCode() + "]" : null;
+		LOG.trace("getCachedValue called for {} : {}", keyLogData, key);
 		
 		final SoftReference<CacheValue<V>> ref = this.cache.get(key);
 		if(ref == null)
@@ -117,7 +128,26 @@ public class ExpiringLimitedCache<K, V> implements AutoCloseable
 		}
 		
 		LOG.trace("{} is present", keyLogData);
-		return value.value();
+		return value;
+	}
+	
+	public V get(final K key)
+	{
+		final CacheValue<V> cachedValue = this.getCachedValue(key);
+		return cachedValue != null ? cachedValue.value() : null;
+	}
+	
+	public V computeIfAbsent(final K key, final Function<K, V> mappingFunction)
+	{
+		final CacheValue<V> cachedValue = this.getCachedValue(key);
+		if(cachedValue != null)
+		{
+			return cachedValue.value();
+		}
+		
+		final V value = mappingFunction.apply(key);
+		this.put(key, value);
+		return value;
 	}
 	
 	@SuppressWarnings("java:S2583") // Lock acquisition may take time
@@ -165,7 +195,7 @@ public class ExpiringLimitedCache<K, V> implements AutoCloseable
 		
 		toClear.forEach(this.cache::remove);
 		
-		if(LOG.isTraceEnabled())
+		if(isTraceEnabled())
 		{
 			LOG.trace(
 				"Cleared {}x cached entries, took {}ms",
