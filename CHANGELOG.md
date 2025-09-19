@@ -1,10 +1,9 @@
-# 2.2.2
-* Re-Release due to Sonatype/Maven Central incorrectly claiming that the previous release is incorrectly signed #153
-
-# 2.2.1
+# 2.2.3
 * Re-Release due to Sonatype/Maven Central incorrectly claiming that the previous release is incorrectly signed #153
 
 # 2.2.0
+_Not available due to validation error on Sonatype/Maven Central preventing publishing.<br/>_
+_The problem was resolved in `2.2.3`_
 * Added `computeIfAbsent`
 * Improved logging performance
 * Scheduler: Try to remove tasks immediately when cancelled to prevent unbound retention of cancelled tasks
