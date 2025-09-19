@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<licensePluginReport goal="FORMAT" timestamp="1758263832418">
+    <module artifactId="expiring-limited-cache" groupId="software.xdev" version="2.2.3"/>
+    <files>
+        <file path="src/main/java/software/xdev/caching/ExpiringLimitedCache.java" result="NOOP"/>
+        <file path="src/main/java/software/xdev/caching/scheduledexecutorservice/DefaultCreator.java" result="NOOP"/>
+        <file path="src/main/java/software/xdev/caching/scheduledexecutorservice/DefaultHolder.java" result="NOOP"/>
+        <file path="src/test/java/software/xdev/caching/ExpiringLimitedCacheTest.java" result="NOOP"/>
+    </files>
+</licensePluginReport>
