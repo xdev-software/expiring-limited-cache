@@ -1,3 +1,6 @@
+# 2.3.0
+* Update minimum Java version to 21
+
 # 2.2.3
 * Re-Release due to Sonatype/Maven Central incorrectly claiming that the previous release is incorrectly signed #153
 

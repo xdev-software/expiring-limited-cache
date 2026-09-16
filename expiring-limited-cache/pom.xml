@@ -6,7 +6,7 @@
 
 	<groupId>software.xdev</groupId>
 	<artifactId>expiring-limited-cache</artifactId>
-	<version>2.2.4-SNAPSHOT</version>
+	<version>2.3.0-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 	<name>expiring-limited-cache</name>
@@ -42,7 +42,7 @@
 	</licenses>
 
 	<properties>
-		<javaVersion>17</javaVersion>
+		<javaVersion>21</javaVersion>
 		<maven.compiler.release>${javaVersion}</maven.compiler.release>
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -118,28 +118,6 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.16.0</version>
-				<executions>
-					<execution>
-						<id>compile-java-17</id>
-						<goals>
-							<goal>compile</goal>
-						</goals>
-					</execution>
-					<execution>
-						<id>compile-java-21</id>
-						<phase>compile</phase>
-						<goals>
-							<goal>compile</goal>
-						</goals>
-						<configuration>
-							<release>21</release>
-							<compileSourceRoots>
-								<compileSourceRoot>${project.basedir}/src/main/java21</compileSourceRoot>
-							</compileSourceRoots>
-							<multiReleaseOutput>true</multiReleaseOutput>
-						</configuration>
-					</execution>
-				</executions>
 				<configuration>
 					<release>${maven.compiler.release}</release>
 					<compilerArgs>
