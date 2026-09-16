@@ -6,7 +6,7 @@
 
 	<groupId>software.xdev</groupId>
 	<artifactId>expiring-limited-cache</artifactId>
-	<version>2.2.4-SNAPSHOT</version>
+	<version>2.3.0-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 	<name>expiring-limited-cache</name>
@@ -42,7 +42,7 @@
 	</licenses>
 
 	<properties>
-		<javaVersion>17</javaVersion>
+		<javaVersion>21</javaVersion>
 		<maven.compiler.release>${javaVersion}</maven.compiler.release>
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -53,18 +53,18 @@
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
-			<version>2.0.17</version>
+			<version>2.0.19</version>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-simple</artifactId>
-			<version>2.0.17</version>
+			<version>2.0.19</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter-api</artifactId>
-			<version>5.13.4</version>
+			<version>6.1.3</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
@@ -88,7 +88,7 @@
 			<plugin>
 				<groupId>com.mycila</groupId>
 				<artifactId>license-maven-plugin</artifactId>
-				<version>5.0.0</version>
+				<version>5.1.2</version>
 				<configuration>
 					<properties>
 						<email>${project.organization.url}</email>
@@ -117,29 +117,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.14.0</version>
-				<executions>
-					<execution>
-						<id>compile-java-17</id>
-						<goals>
-							<goal>compile</goal>
-						</goals>
-					</execution>
-					<execution>
-						<id>compile-java-21</id>
-						<phase>compile</phase>
-						<goals>
-							<goal>compile</goal>
-						</goals>
-						<configuration>
-							<release>21</release>
-							<compileSourceRoots>
-								<compileSourceRoot>${project.basedir}/src/main/java21</compileSourceRoot>
-							</compileSourceRoots>
-							<multiReleaseOutput>true</multiReleaseOutput>
-						</configuration>
-					</execution>
-				</executions>
+				<version>3.16.0</version>
 				<configuration>
 					<release>${maven.compiler.release}</release>
 					<compilerArgs>
@@ -150,7 +128,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>3.11.3</version>
+				<version>3.12.0</version>
 				<executions>
 					<execution>
 						<id>attach-javadocs</id>
@@ -168,7 +146,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-source-plugin</artifactId>
-				<version>3.3.1</version>
+				<version>3.4.0</version>
 				<executions>
 					<execution>
 						<id>attach-sources</id>
@@ -183,7 +161,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
-				<version>3.5.4</version>
+				<version>3.6.0</version>
 			</plugin>
 		</plugins>
 	</build>
@@ -195,7 +173,7 @@
 					<plugin>
 						<groupId>org.codehaus.mojo</groupId>
 						<artifactId>flatten-maven-plugin</artifactId>
-						<version>1.7.2</version>
+						<version>1.8.0</version>
 						<configuration>
 							<flattenMode>ossrh</flattenMode>
 						</configuration>
@@ -241,7 +219,7 @@
 					<plugin>
 						<groupId>org.sonatype.central</groupId>
 						<artifactId>central-publishing-maven-plugin</artifactId>
-						<version>0.8.0</version>
+						<version>0.11.0</version>
 						<extensions>true</extensions>
 						<configuration>
 							<publishingServerId>sonatype-central-portal</publishingServerId>
@@ -263,7 +241,7 @@
 							<dependency>
 								<groupId>com.puppycrawl.tools</groupId>
 								<artifactId>checkstyle</artifactId>
-								<version>11.0.1</version>
+								<version>14.1.0</version>
 							</dependency>
 						</dependencies>
 						<configuration>
@@ -288,7 +266,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-pmd-plugin</artifactId>
-						<version>3.27.0</version>
+						<version>3.28.0</version>
 						<configuration>
 							<analysisCache>true</analysisCache>
 							<includeTests>true</includeTests>
@@ -301,12 +279,12 @@
 							<dependency>
 								<groupId>net.sourceforge.pmd</groupId>
 								<artifactId>pmd-core</artifactId>
-								<version>7.17.0</version>
+								<version>7.27.0</version>
 							</dependency>
 							<dependency>
 								<groupId>net.sourceforge.pmd</groupId>
 								<artifactId>pmd-java</artifactId>
-								<version>7.17.0</version>
+								<version>7.27.0</version>
 							</dependency>
 						</dependencies>
 					</plugin>
