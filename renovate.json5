@@ -14,7 +14,7 @@
     },
     {
       "description": "Ignore project internal dependencies",
-      "packagePattern": "^software.xdev:template-placeholder",
+      "packagePattern": "^software.xdev:expiring-limited-cache",
       "datasources": [
         "maven"
       ],
@@ -29,6 +29,16 @@
         "maven"
       ],
       "groupName": "net.sourceforge.pmd"
+    },
+    {
+      "description": "Group org.slf4j",
+      "matchPackagePatterns": [
+        "^org.slf4j"
+      ],
+      "datasources": [
+        "maven"
+      ],
+      "groupName": "org.slf4j"
     }
   ]
 }
